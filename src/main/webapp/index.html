@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>TinyInsta</title>
+		
+		<script src="https://unpkg.com/mithril/mithril.js"></script>
+		<style>
+			a
+			{
+				display: block;
+			}
+		</style>
+	</head>
+	
+	<body>
+		<script>
+			var root = document.body;
+			
+			var Home = {
+				view: function()
+				{
+					return m(
+						"nav.main_menu",
+						[
+							m(
+								m.route.Link, 
+								{
+									href: "/authenticate"
+								},
+								"Authenticate"
+							), 
+							m(
+								m.route.Link, 
+								{
+									href: "/register"
+								},
+								"Register"
+							), 
+							m(
+								m.route.Link, 
+								{
+									href: "/post"
+								},
+								"Post"
+							), 
+							m(
+								m.route.Link, 
+								{
+									href: "/messages"
+								},
+								"Messages"
+							), 
+							m(
+								m.route.Link, 
+								{
+									href: "/follow"
+								},
+								"Follow User"
+							), 
+							m(
+								m.route.Link, 
+								{
+									href: "/createusers"
+								},
+								"Create Users"
+							), 
+							m(
+								m.route.Link, 
+								{
+									href: "/tomfollowedby100"
+								},
+								"Tom Followed By 100"
+							), 
+							m(
+								m.route.Link, 
+								{
+									href: "/jerryfollowedby10"
+								},
+								"Jerry Followed By 10"
+							)
+						]
+					);
+				}
+			};
+			
+			var Register = {
+				email: "", 
+				username: "", 
+				password: "", 
+				
+				register_user: function()
+				{
+					if( Register.email.length > 0 && Register.username.length > 0 && Register.password.length > 0 )
+					{
+						return m.request({
+							method: "POST",
+							url: "https://swift-kiln-260805.appspot.com/_ah/api/tinyInstaApi/v1/registerUser/" + Register.email + "/" + Register.username + "/" + Register.password
+						})
+						.then(function(res)
+						{
+							if( !res.hasOwnProperty("error") )
+							{
+								alert("Registered successfully");
+							}
+							else
+							{
+								alert("Email already exists");
+							}
+						});
+					}
+					else
+					{
+						alert("All fields must be filled out");
+					}
+				},
+				
+				view: function()
+				{
+					return m(
+						"form", 
+						{
+							// on submitting the form
+							onsubmit: function(e)
+							{
+								e.preventDefault();
+								Register.register_user();
+							}
+						}, 
+						[
+							m(
+								"input[type=text][name=email][placeholder=email]", 
+								{
+									onkeyup: function(e)
+									{
+										Register.email = this.value;
+									}
+								}
+							), 
+							m(
+								"input[type=text][name=username][placeholder=username]", 
+								{
+									onkeyup: function(e)
+									{
+										Register.username = this.value;
+									}
+								}
+							), 
+							m(
+								"input[type=password][name=password][placeholder=Password]", 
+								{
+									onkeyup: function(e)
+									{
+										Register.password = this.value;
+									}
+								}
+							), 
+							m("input[type=submit][name=register][value=Register]"), 
+							m(Home)
+						]
+					);
+				}
+			};
+			
+			var LoginForm = {
+				username: "", 
+				password: "", 
+				
+				authenticate_user: function()
+				{
+					if( LoginForm.username.length > 0 && LoginForm.password.length > 0 )
+					{
+						return m.request({
+							method: "POST",
+							url: "https://swift-kiln-260805.appspot.com/_ah/api/tinyInstaApi/v1/authenticateUser/" + LoginForm.username + "/" + LoginForm.password,
+						})
+						.then(function(res)
+						{
+							if( res != null )
+							{
+								alert("Authenticated");
+							}
+							else
+							{
+								alert("Incorrect username or password");
+							}
+						});
+					}
+					else
+					{
+						console.log("Username and password must be filled out");
+					}
+				},
+				
+				view: function(vnode)
+				{
+					return m(
+						"form", 
+						{
+							// on submitting the form
+							onsubmit: function(e)
+							{
+								e.preventDefault();
+								LoginForm.authenticate_user();
+							}
+						}, 
+						[
+							m(
+								"input[type=text][name=username][placeholder=Username]", 
+								{
+									onkeyup: function(e)
+									{
+										LoginForm.username = this.value;
+									}
+								}
+							), 
+							m(
+								"input[type=password][name=password][placeholder=Password]", 
+								{
+									onkeyup: function(e)
+									{
+										LoginForm.password = this.value;
+									}
+								}
+							), 
+							m("input[type=submit][name=login][value=Login]"), 
+							m(Home)
+						]
+					);
+				}
+			};
+			
+			var Message = {
+				email: "", 
+				
+				get_messages()
+				{
+					if( Message.email.length > 0 )
+					{
+						return m.request({
+							method: "GET",
+							url: "https://swift-kiln-260805.appspot.com/_ah/api/tinyInstaApi/v1/tinymessage/" + Message.email
+						})
+						.then(function(res)
+						{
+							if( res.hasOwnProperty("messages") )
+							{
+								var to_remove = document.querySelector("#messages_div");
+								if( to_remove != null )
+								{
+									console.log(to_remove);
+									to_remove.parentElement.removeChild(to_remove);
+								}
+								
+								var messages_div = document.createElement("div");
+								messages_div.id = "messages_div";
+								res['messages'].forEach(function(item)
+								{
+									var p = document.createElement("p");
+									
+									p.innerHTML = item;
+									messages_div.appendChild(p);
+								});
+								root.appendChild(messages_div);
+							}
+							else
+							{
+								alert("You have no messages");
+							}
+						});
+					}
+					else
+					{
+						console.log("Username and password must be filled out");
+					}
+				},
+				
+				view: function(vnode)
+				{
+					return m(
+						"form", 
+						{
+							// on submitting the form
+							onsubmit: function(e)
+							{
+								e.preventDefault();
+								Message.get_messages();
+							}
+						}, 
+						[
+							m(
+								"input[type=text][name=email][placeholder=Email]", 
+								{
+									onkeyup: function(e)
+									{
+										Message.email = this.value;
+									}
+								}
+							), 
+							m("input[type=submit][name=login][value=Get messages]"), 
+							m(Home)
+						]
+					);
+				}
+			};
+			
+			var Post = {
+				email: "", 
+				message: "", 
+				
+				post_message: function()
+				{
+					if( Post.email.length > 0 && Post.message.length > 0 )
+					{
+						return m.request({
+							method: "POST",
+							url: "https://swift-kiln-260805.appspot.com/_ah/api/tinyInstaApi/v1/postMessage/" + Post.email + "/" + Post.message,
+						})
+						.then(function(res)
+						{
+							if( res != null )
+							{
+								alert("message posted successfully");
+							}
+							else
+							{
+								alert(res['error']);
+							}
+						});
+					}
+					else
+					{
+						console.log("Email and message must be filled out");
+					}
+				},
+				
+				view: function(vnode)
+				{
+					return m(
+						"form", 
+						{
+							// on submitting the form
+							onsubmit: function(e)
+							{
+								e.preventDefault();
+								Post.post_message();
+							}
+						}, 
+						[
+							m(
+								"input[type=text][name=username][placeholder=Username]", 
+								{
+									onkeyup: function(e)
+									{
+										Post.email = this.value;
+									}
+								}
+							), 
+							m(
+								"input[type=textbox][name=message][placeholder=Post your message here..]", 
+								{
+									onkeyup: function(e)
+									{
+										Post.message = this.value;
+									}
+								}
+							), 
+							m("input[type=submit][name=postmessage][value=Post away]"), 
+							m(Home)
+						]
+					);
+				}
+			};
+			
+			var UserList = {
+				get_users_list: function()
+				{
+					return m.request({
+						method: "GET",
+						url: "https://swift-kiln-260805.appspot.com/_ah/api/tinyInstaApi/v1/tinyusercollection"
+					})
+					.then(function(res)
+					{
+						FollowUser.users_list = res.items;
+						m.redraw(true);
+					});
+				}, 
+			};
+			
+			var FollowUser = {
+				users_list: [], 
+				
+				logged_in_user: "", 
+				to_follow: "", 
+				
+				oninit: UserList.get_users_list, 
+				
+				follow_user: function()
+				{
+					return m.request({
+						method: "POST",
+						url: "https://swift-kiln-260805.appspot.com/_ah/api/tinyInstaApi/v1/followUser/" + logged_in_user + "/" + to_follow
+					})
+					.then(function(res)
+					{
+						alert("Follow successful, you will now be able to see new posts from " + to_follow);
+					});
+				}, 
+				
+				view: function()
+				{
+					return m(
+						"div.information", 
+						"Enter your email and click on the user that you want to follow", 
+						m(
+							"form", 
+							{
+								onsubmit: function(e)
+								{
+									e.preventDefault();
+									FollowUser.follow_user();
+								}
+							},
+							[
+								m(
+									"input.loggedin_user[type=text][name=email][placeholder=Your email]", 
+									{
+										onkeyup: function(e)
+										{
+											logged_in_user = this.value;
+										}
+									}
+								), 
+								m(
+									"input.to_follow[type=text][name=email][placeholder=Person to follow]", 
+									{
+										onkeyup: function(e)
+										{
+											to_follow = this.value;
+										}
+									}
+								), 
+								m("input.submit[type=submit][name=follow][value=Follow user]")
+							]
+						), 
+						m(
+							"div.users_list", 
+							FollowUser.users_list.map(function(item)
+							{
+								return m(
+									"p", 
+									{
+										onclick: function(e)
+										{
+											var to_follow_elem = document.querySelector(".to_follow");
+											to_follow_elem.value = item.email;
+											
+											to_follow = this.value
+										}, 
+										onmouseover: function(e)
+										{
+											this.style.cursor = "pointer";
+										}
+									}, 
+									item.email, 
+								);
+							})
+						)
+					);
+				}
+			};
+			
+			var CreateUsers = {
+				users_list: [], 
+				
+				create_list: function()
+				{
+					// create tom and jerry
+					m.request({
+						method: "POST", 
+						url: "https://swift-kiln-260805.appspot.com/_ah/api/tinyInstaApi/v1/registerUser/tom@warnerbros.com/tom/1945"
+					});
+					
+					m.request({
+						method: "POST", 
+						url: "https://swift-kiln-260805.appspot.com/_ah/api/tinyInstaApi/v1/registerUser/jerry@warnerbros.com/jerry/1945"
+					});
+					
+					var pass = "1234";
+					for( var i = 0; i < 500; ++i )
+					{
+						var user = "user" + (i + 1);
+						var email = user + "@yahoo.com";
+						CreateUsers.users_list.push(user);
+						m.request({
+							method: "POST", 
+							url: "https://swift-kiln-260805.appspot.com/_ah/api/tinyInstaApi/v1/registerUser/" + email + "/" + user + "/" + pass
+						});
+					}
+				}, 
+				
+				oninit: function()
+				{
+					CreateUsers.create_list();
+				}, 
+				
+				view: function()
+				{
+					return m(
+						"div", 
+						CreateUsers.users_list.map(function(user)
+						{
+							return m(
+								"p", 
+								user
+							);
+						})
+					);
+				}
+			};
+			
+			var TomFollowedBy100 = {
+				followed_by: [], 
+				
+				oninit: function()
+				{
+					CreateUsers.create_list();
+					for( var i = 0; i < 100; ++i )
+					{
+						var user_email = CreateUsers.users_list[i] + "@yahoo.com";
+						TomFollowedBy100.followed_by.push(user_email);
+						m.request({
+							method: "POST", 
+							url: "https://swift-kiln-260805.appspot.com/_ah/api/tinyInstaApi/v1/followUser/" + user_email + "/tom@warnerbros.com"
+						})
+					}
+				}, 
+				
+				view: function()
+				{
+					return m(
+						"div", 
+						TomFollowedBy100.followed_by.map(function(fb)
+						{
+							return m(
+								"p", 
+								"Tom followed by " + fb
+							);
+						})
+					);
+				}
+			};
+			
+			var JerryFollowedBy10 = {
+				followed_by: [], 
+				
+				oninit: function()
+				{
+					CreateUsers.create_list();
+					for( var i = 0; i < 10; ++i )
+					{
+						var user_email = CreateUsers.users_list[i + 100] + "@yahoo.com";
+						JerryFollowedBy10.followed_by.push(user_email);
+						m.request({
+							method: "POST", 
+							url: "https://swift-kiln-260805.appspot.com/_ah/api/tinyInstaApi/v1/followUser/" + user_email + "/jerry@warnerbros.com"
+						})
+					}
+				}, 
+				
+				view: function()
+				{
+					return m(
+						"div", 
+						JerryFollowedBy10.followed_by.map(function(fb)
+						{
+							return m(
+								"p", 
+								"Jerry followed by " + fb
+							);
+						})
+					);
+				}
+			};
+			
+			var TomSaysHello500 = {
+			};
+			
+			m.route(
+				root, 
+				"/home", 
+				{
+					"/home": Home, 
+					"/authenticate": LoginForm, 
+					"/post": Post, 
+					"/messages": Message, 
+					"/register": Register, 
+					"/follow": FollowUser, 
+					"/createusers": CreateUsers, 
+					"/tomfollowedby100": TomFollowedBy100, 
+					"/jerryfollowedby10": JerryFollowedBy10
+				}
+			);
+		</script>
+	</body>
+</html>

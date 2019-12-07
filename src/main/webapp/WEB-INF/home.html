@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>TinyInsta</title>
+		
+		<script src="https://unpkg.com/mithril/mithril.js"></script>
+	</head>
+	
+	<body>
+		<div id="post">
+		</div>
+		
+		<script>
+			var root = document.body;
+			var post_div = document.querySelector("#post");
+			
+			var Post = {
+				message: "",
+				
+				view: function()
+				{
+					return m(
+						"form", 
+						{
+							onsubmit: function(e)
+							{
+								e.preventDefault();
+								Post.postMessage();
+							}
+						},
+						[
+							m(
+								"input[type=text][name=post][placeholder=Enter your message here]",
+								{
+									onkeyup: function(e)
+									{
+										Post.message = this.value;
+									}
+								}
+							),
+							m(
+								"input[type=submit][name=post][value=Post Message]"
+							)
+						]
+					);
+				}
+			};
+			
+			m.route(root, "/home", {
+				"/home": Post
+			});
+			
+			m.mount(post_div, Post);
+		</script>
+	</body>
+</html>
